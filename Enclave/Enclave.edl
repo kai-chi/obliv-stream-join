@@ -1,0 +1,94 @@
+/*
+ * Copyright (C) 2011-2020 Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in
+ *     the documentation and/or other materials provided with the
+ *     distribution.
+ *   * Neither the name of Intel Corporation nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+/* Enclave.edl - Top EDL file. */
+
+enclave {
+
+    from "sgx_tstdc.edl" import *;
+    from "sgx_pthread.edl" import *;
+    from "sgx_tsgxssl.edl" import *;
+
+    include "data-types.h"
+    include "LoggerTypes.h"
+
+    trusted {
+        public void ecall_join([out] struct result_t * result,
+                               [in] struct table_t * relR,
+                               [in] struct table_t * relS,
+                               [in, size=128] char* algorithm,
+                               [in] struct joinconfig_t * config);
+
+};
+
+    untrusted {
+
+        void ocall_setup_ramStore(int isLeft, size_t num, int size);
+        size_t ocall_nread_ramStore(int isLeft, size_t blockCount,[in,count=blockCount]uint32_t* indexes, [in,out,count=len] char *blk,size_t len);
+        void ocall_nwrite_ramStore(int isLeft, size_t blockCount,[in,count=blockCount]uint32_t* indexes, [in, count=len] const char *blk,size_t len);
+        void ocall_initialize_ramStore(int isLeft, long long begin,long long end, [in, count=len] const char *block,size_t len);
+        void ocall_write_ramStore(int isLeft, uint32_t pos, [in, count=len] const char *block,size_t len);
+
+        void ocall_setup_heapStore(int isLeft, size_t num, int size);
+        size_t ocall_nread_heapStore(int isLeft, size_t blockCount,[in,count=blockCount]long long* indexes, [in,out,count=len] char *blk,size_t len);
+        void ocall_nwrite_heapStore(int isLeft, size_t blockCount,[in,count=blockCount]long long* indexes, [in, count=len] const char *blk,size_t len);
+        void ocall_initialize_heapStore(int isLeft, long long begin,long long end, [in, count=len] const char *block,size_t len);
+        void ocall_write_heapStore(int isLeft, long long pos, [in, count=len] const char *block,size_t len);
+
+        /*
+        * ocall_print_string - invokes OCALL to display string buffer inside the enclave.
+        *  [in]: copy the string buffer to App outside.
+        *  [string]: specifies 'str' is a NULL terminated buffer.
+        */
+        void ocall_print_string([in, string] const char *str);
+
+        void ocall_log_string(enum LEVEL level, [in, string] const char *str);
+
+        void ocall_write_to_file([in, string] const char *str);
+
+        uint64_t ocall_get_system_micros();
+
+        uint64_t ocall_rdtsc();
+
+        void ocall_startTimer([in, out] uint64_t* t);
+
+        void ocall_stopTimer([in, out] uint64_t* t);
+
+        void ocall_exit(int exit_status);
+
+        void ocall_throw([in, string] const char* message);
+
+        void ocall_start_timer(int timerID);
+        double ocall_stop_timer(int timerID);
+        uint64_t ocall_clock_cycles();
+
+    };
+};
